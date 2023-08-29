@@ -1,0 +1,30 @@
+{
+  "name": "swapbot",
+  "version": "1.0.0",
+  "description": "Swapbot contracts are account abstraction schemes integrating UniswapV3 and other DeFi protcols.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swapbotAA/contracts.git"
+  },
+  "author": "alvin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/swapbotAA/contracts/issues"
+  },
+  "homepage": "https://github.com/swapbotAA/contracts#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.3"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.6",
+    "chai": "^4.3.8",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.17.2"
+  }
+}
