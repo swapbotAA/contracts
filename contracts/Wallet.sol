@@ -49,7 +49,6 @@ contract Wallet  {
         );
         balanceOf[user][WETH9] -= amount;
         IWETH9(WETH9).withdraw(amount);
-
         (bool success, ) = address(msg.sender).call{value: amount}("");
         require(success, "Wallet: low-level call failed");
         emit Withdraw(user, address(0), amount);
@@ -71,6 +70,5 @@ contract Wallet  {
     }
 
     receive() external payable {
-        balanceOf[msg.sender][address(0)] += msg.value;
     }
 }
