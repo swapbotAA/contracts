@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/swapbotAA/contracts#readme",
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.3"
+    "@nomicfoundation/hardhat-verify": "^1.1.1",
+    "@openzeppelin/contracts": "^4.9.3",
+    "dotenv": "^16.0.3"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",

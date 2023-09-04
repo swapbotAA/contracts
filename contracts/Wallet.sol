@@ -3,10 +3,11 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interface/IWETH9.sol";
-import "./ImmutableState.sol";
+import "./Register.sol";
 
 contract Wallet  {
-    address public WETH9 = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address public register;
+    address public WETH9;
     mapping(address => mapping(address => uint256)) public balanceOf;
 
     event Deposit(
@@ -19,6 +20,11 @@ contract Wallet  {
         address indexed contractAddress,
         uint256 amount
     );
+
+    constructor(address _register, address _WETH) {
+        WETH9 = _WETH;
+        register = _register;
+    }
 
     function depositETH(address user) external payable {
         IWETH9(WETH9).deposit{value: msg.value}();
@@ -42,7 +48,8 @@ contract Wallet  {
     }
 
     function withdrawETH(address user, uint256 amount) external {
-        require(msg.sender == user, "Wallet: invalid sender");
+        _isValidRequest(user);
+        // require(msg.sender == user, "Wallet: invalid sender");
         require(
             balanceOf[user][WETH9] >= amount,
             "Wallet: insufficient ethers"
@@ -59,7 +66,8 @@ contract Wallet  {
         address contractAddress,
         uint256 amount
     ) external {
-        require(msg.sender == user, "Wallet: invalid sender");
+        _isValidRequest(user);
+        // require(msg.sender == user, "Wallet: invalid sender");
         require(
             balanceOf[user][contractAddress] >= amount,
             "Wallet: insufficient tokens"
@@ -68,6 +76,12 @@ contract Wallet  {
         SafeERC20.safeTransfer(IERC20(contractAddress), msg.sender, amount);
         emit Withdraw(user, contractAddress, amount);
     }
+
+    function _isValidRequest(address user) internal view {
+        require(msg.sender == user || Register(register).isApproved(msg.sender), "Wallet: invalid sender");
+    }
+
+    
 
     receive() external payable {
     }

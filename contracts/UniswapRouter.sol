@@ -7,11 +7,31 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract UniswapRouter {
-    address swapRouter = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    // solhint-disable-next-line
+    bytes32 public DOMAIN_SEPARATOR;
+
+    string public name = "UniswapRouter";
+    address swapRouter;
     address payable wallet;
 
-    constructor(address payable walletAddress) {
+    constructor(address payable walletAddress, address _swapRouter) {
         wallet = walletAddress;
+        swapRouter = _swapRouter;
+        uint256 chainId;
+        assembly {
+            chainId := chainid()
+        }
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                keccak256(
+                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                ),
+                keccak256(bytes(name)),
+                keccak256(bytes("1")),
+                chainId,
+                address(this)
+            )
+        );
     }
 
     function exactInputSingle(
@@ -21,11 +41,19 @@ contract UniswapRouter {
         bytes32 r,
         bytes32 s
     ) external {
-        bytes32 encodedData = keccak256(encodeExactInputSingleParams(params));
+         // compute digest according to eip712
+        bytes32 digest = keccak256(
+            abi.encodePacked(
+                "\x19\x01",
+                DOMAIN_SEPARATOR,
+                keccak256(encodeExactInputSingleParams(params))
+            )
+        );
         require(
-            ECDSA.recover(encodedData, v, r, s) == user,
+            ECDSA.recover(digest, v, r, s) == user,
             "UniswapRouter: invalid signature"
         );
+    
 
         Wallet(wallet).withdrawERC20(user, params.tokenIn, params.amountIn);
         SafeERC20.safeApprove(
@@ -41,7 +69,10 @@ contract UniswapRouter {
     function encodeExactInputSingleParams(
         ISwapRouter.ExactInputSingleParams memory params
     ) public pure returns (bytes memory) {
-        bytes memory res = abi.encode(params);
+        bytes32 hashed = keccak256("ExactInputSingleParams(address tokenIn,address tokenOut,uint24 fee,address recipient,uint256 deadline,uint256 amountIn,uint256 amountOutMinimum,uint160 sqrtPriceLimitX96)");
+        bytes memory res = abi.encode(hashed,params);
         return res;
     }
+
+  
 }

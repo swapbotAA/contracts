@@ -4,6 +4,8 @@
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
+const { ethers } = require("hardhat");
+require('dotenv').config()
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -14,12 +16,24 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  const Register = await ethers.getContractFactory("Register");
+  const Wallet = await ethers.getContractFactory("Wallet");
+  const UniswapRouter = await ethers.getContractFactory("UniswapRouter");
 
-  await greeter.deployed();
+  console.log("deploying...")
+  let register = await Register.deploy();
+  await register.deployed()
+  console.log("register deployed: ", register.address)
 
-  console.log("Greeter deployed to:", greeter.address);
+  let wallet = await Wallet.deploy(register.address, process.env.WETH_SEPOLIA);
+  await wallet.deployed()
+  console.log("wallet deployed: ", wallet.address)
+
+  let uniswapRouter = await UniswapRouter.deploy(wallet.address, process.env.SWAPROUTER_SEPOLIA);
+  await uniswapRouter.deployed()
+  console.log("uniswapRouter deployed: ", uniswapRouter.address)
+
+  await register.addRouter(uniswapRouter.address)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
