@@ -7,7 +7,7 @@ MAX = "5792089237316195423570985008687907853269984665640564039457584007913129639
 // All properties on a domain are optional
 
 
-async function createTypedDataAndSign(tokenIn, tokenOut, fee, routerAddress,deadline, amountIn, signer, chainId) {
+async function createTypedDataAndSign(tokenIn, tokenOut, fee, routerAddress, amountIn, amountOutMinimum, signer, chainId, salt) {
     const domain = {
         name: 'UniswapRouter',
         version: '1',
@@ -20,10 +20,10 @@ async function createTypedDataAndSign(tokenIn, tokenOut, fee, routerAddress,dead
             { name: 'tokenOut', type: 'address' },
             { name: 'fee', type: 'uint24' },
             { name: 'recipient', type: 'address' },
-            { name: 'deadline', type: 'uint256' },
             { name: 'amountIn', type: 'uint256' },
             { name: 'amountOutMinimum', type: 'uint256' },
             { name: 'sqrtPriceLimitX96', type: 'uint160' },
+            { name: 'salt', type: 'bytes32' }
         ],
     };
     let value = {
@@ -31,10 +31,10 @@ async function createTypedDataAndSign(tokenIn, tokenOut, fee, routerAddress,dead
         tokenOut: tokenOut,
         fee: fee,
         recipient: routerAddress,
-        deadline: deadline,
         amountIn: amountIn,
-        amountOutMinimum: 0,
+        amountOutMinimum: amountOutMinimum,
         sqrtPriceLimitX96: 0,
+        salt: salt
     }
 
     signature = await signer._signTypedData(domain, types, value);

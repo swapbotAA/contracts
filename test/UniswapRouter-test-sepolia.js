@@ -4,13 +4,11 @@ const { createTypedDataAndSign } = require("../utils/signTypedData.js");
 require('dotenv').config()
 
 ZEROADDRESS = "0x0000000000000000000000000000000000000000"
-WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
-DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-SWAPROUTER = process.env.SWAPROUTER02_MAINNET
-DEADLINE = "5792089237316195423570985008687907853269984665640564039457584007913129639935"
-CHAINID = 31337
+WETH = "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14"
+UNI = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"
+SWAPROUTER = process.env.SWAPROUTER02_SEPOLIA
 SALT = "0x0000000000000000000000000000000000000000000000000000000000000000"
+CHAINID = process.env.HARDHAT_CHAINID
 
 describe("Wallet", function () {
 
@@ -29,19 +27,19 @@ describe("Wallet", function () {
         threeEther = ethers.utils.parseEther("3")
         tenGwei = "10000000000"
 
-        someEther = ethers.utils.parseEther("0.005")
+        someEther = ethers.utils.parseEther("0.01")
 
         const Register = await ethers.getContractFactory("Register");
         const Wallet = await ethers.getContractFactory("Wallet");
         const UniswapRouter = await ethers.getContractFactory("UniswapRouter");
 
         iWETH9 = await ethers.getContractAt("IWETH9", WETH);
-        iUSDC = await ethers.getContractAt("IERC20", USDC);
-        iDai = await ethers.getContractAt("IERC20", DAI);
+        // iUSDC = await ethers.getContractAt("IERC20", USDC);
+        // iDai = await ethers.getContractAt("IERC20", DAI);
 
         register = await Register.deploy();
         await register.deployed()
-        wallet = await Wallet.deploy(register.address, process.env.WETH_MAINNET);
+        wallet = await Wallet.deploy(register.address, WETH);
         await wallet.deployed()
         uniswapRouter = await UniswapRouter.deploy(wallet.address, SWAPROUTER);
         await uniswapRouter.deployed()
@@ -57,19 +55,19 @@ describe("Wallet", function () {
     it("exactInputSingle()", async function () {
 
         await wallet.depositETH(signer.address, { value: someEther })
+        someEther = await wallet.balanceOf(signer.address, WETH)
 
         {
-            let { value, r, s, v } = await createTypedDataAndSign(WETH, USDC, 3000, uniswapRouter.address, someEther, 0, signer, CHAINID, SALT)
+            let { value, r, s, v } = await createTypedDataAndSign(WETH, UNI, 3000, uniswapRouter.address, someEther, 0, signer, CHAINID, SALT)
             await uniswapRouter.connect(user).exactInputSingle(value, SALT, signer.address, v, r, s)
-
         }
 
         {
-            usdcBalance = await wallet.balanceOf(signer.address, USDC)
-            let { value, r, s, v } = await createTypedDataAndSign(USDC, DAI, 3000, uniswapRouter.address, usdcBalance, 0, signer, CHAINID, SALT)
+            uniBalance = await wallet.balanceOf(signer.address, UNI)
+            let { value, r, s, v } = await createTypedDataAndSign(UNI, WETH, 3000, uniswapRouter.address, uniBalance, 0, signer, CHAINID, SALT)
             await uniswapRouter.connect(user).exactInputSingle(value, SALT, signer.address, v, r, s)
-            daiBalance = await wallet.balanceOf(signer.address, DAI)
-            await wallet.connect(user).withdrawERC20(user.address, DAI, daiBalance)
+            wethBalance = await wallet.balanceOf(signer.address, WETH)
+            await wallet.connect(user).withdrawERC20(user.address, WETH, wethBalance)
         }
 
 

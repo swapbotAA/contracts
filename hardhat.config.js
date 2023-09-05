@@ -28,8 +28,10 @@ module.exports = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://mainnet.infura.io/v3/b6b76cf6eef242a197dd2916d295210c",
-        blockNumber: 16045624,
+        // url: "https://mainnet.infura.io/v3/b6b76cf6eef242a197dd2916d295210c",
+        // blockNumber: 16045624,
+        url: "https://sepolia.infura.io/v3/b6b76cf6eef242a197dd2916d295210c",
+        blockNumber: 4227276,
       },
       gas: 2100000
       // account:[]

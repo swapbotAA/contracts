@@ -6,6 +6,7 @@
 const hre = require("hardhat");
 const { ethers } = require("hardhat");
 require('dotenv').config()
+SWAPROUTER = process.env.SWAPROUTER02_SEPOLIA
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -29,7 +30,7 @@ async function main() {
   await wallet.deployed()
   console.log("wallet deployed: ", wallet.address)
 
-  let uniswapRouter = await UniswapRouter.deploy(wallet.address, process.env.SWAPROUTER_SEPOLIA);
+  let uniswapRouter = await UniswapRouter.deploy(wallet.address, SWAPROUTER);
   await uniswapRouter.deployed()
   console.log("uniswapRouter deployed: ", uniswapRouter.address)
 
