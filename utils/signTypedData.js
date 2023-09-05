@@ -1,10 +1,4 @@
 const { ethers } = require("hardhat");
-ZEROADDRESS = "0x0000000000000000000000000000000000000000"
-WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-USDC = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
-DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-MAX = "5792089237316195423570985008687907853269984665640564039457584007913129639935"
-// All properties on a domain are optional
 
 
 async function createTypedDataAndSign(tokenIn, tokenOut, fee, routerAddress, amountIn, amountOutMinimum, signer, chainId, salt) {
