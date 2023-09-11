@@ -58,14 +58,14 @@ contract UniswapRouter {
     
 
         Wallet(wallet).withdrawERC20(user, params.tokenIn, params.amountIn);
-        SafeERC20.safeApprove(
+        SafeERC20.safeIncreaseAllowance(
             IERC20(params.tokenIn),
             swapRouter,
             params.amountIn
         );
         uint256 amountOut = IV3SwapRouter(swapRouter).exactInputSingle(params);
 
-        SafeERC20.safeApprove(IERC20(params.tokenOut), wallet, amountOut);
+        SafeERC20.safeIncreaseAllowance(IERC20(params.tokenOut), wallet, amountOut);
         Wallet(wallet).depositERC20(user, params.tokenOut, amountOut);
     }
 

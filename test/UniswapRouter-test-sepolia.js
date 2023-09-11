@@ -28,6 +28,7 @@ describe("Wallet", function () {
         tenGwei = "10000000000"
 
         someEther = ethers.utils.parseEther("0.01")
+        halfOfsomeEther = ethers.utils.parseEther("0.005")
 
         const Register = await ethers.getContractFactory("Register");
         const Wallet = await ethers.getContractFactory("Wallet");
@@ -69,6 +70,27 @@ describe("Wallet", function () {
             wethBalance = await wallet.balanceOf(signer.address, WETH)
             await wallet.connect(user).withdrawERC20(user.address, WETH, wethBalance)
         }
+
+
+
+    })
+
+    it("exactInputSingle()*multiple times", async function () {
+
+        await wallet.depositETH(signer.address, { value: someEther })
+        someEther = await wallet.balanceOf(signer.address, WETH)
+
+        {
+            let { value, r, s, v } = await createTypedDataAndSign(WETH, UNI, 3000, uniswapRouter.address, halfOfsomeEther, 0, signer, CHAINID, SALT)
+            await uniswapRouter.connect(user).exactInputSingle(value, SALT, signer.address, v, r, s)
+        }
+
+
+        {
+            let { value, r, s, v } = await createTypedDataAndSign(WETH, UNI, 3000, uniswapRouter.address, halfOfsomeEther, 0, signer, CHAINID, SALT)
+            await uniswapRouter.connect(user).exactInputSingle(value, SALT, signer.address, v, r, s)
+        }
+
 
 
     })
