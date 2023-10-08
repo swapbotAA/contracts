@@ -37,6 +37,21 @@ contract SparkyAccountFactory {
             )));
     }
 
+    // function createAccount(address owner,uint256 salt) public returns (address) {
+    //     address addr = getAddress(owner, salt);
+    //     uint codeSize = addr.code.length;
+    //     if (codeSize > 0) {
+    //         // return SparkyAccount(payable(addr));
+    //         return addr;
+    //     }
+    //     SparkyAccount(payable(new ERC1967Proxy{salt : bytes32(salt)}(
+    //             address(accountImplementation),
+    //             abi.encodeCall(SparkyAccount.initialize, (owner))
+    //         )));
+
+    //     return addr;
+    // }
+
     /**
      * calculate the counterfactual address of this account as it would be returned by createAccount()
      */

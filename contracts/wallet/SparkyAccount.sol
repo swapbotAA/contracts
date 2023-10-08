@@ -77,6 +77,8 @@ contract SparkyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
         }
     }
 
+   
+
     /**
      * @dev The _entryPoint member is immutable, to reduce gas consumption.  To upgrade EntryPoint,
      * a new implementation of SparkyAccount must be deployed with the new EntryPoint address, then upgrading
@@ -99,10 +101,11 @@ contract SparkyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
     /// implement template method of BaseAccount
     function _validateSignature(UserOperation calldata userOp, bytes32 userOpHash)
     internal override virtual returns (uint256 validationData) {
-        bytes32 hash = userOpHash.toEthSignedMessageHash();
-        if (owner != hash.recover(userOp.signature))
-            return SIG_VALIDATION_FAILED;
         return 0;
+        // bytes32 hash = userOpHash.toEthSignedMessageHash();
+        // if (owner != hash.recover(userOp.signature))
+        //     return SIG_VALIDATION_FAILED;
+        // return 0;
     }
 
     function _call(address target, uint256 value, bytes memory data) internal {
