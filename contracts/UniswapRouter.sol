@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./Wallet.sol";
 // import "./interface/ISwapRouter.sol";
-import "./interface/IV3SwapRouter.sol";
+import "./interfaces/IV3SwapRouter.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
