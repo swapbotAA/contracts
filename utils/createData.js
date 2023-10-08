@@ -44,4 +44,14 @@ function createInitCode(
     return res
 
 }
-module.exports = { createUserOperation, createInitCode }
+
+function createCallData(
+    funcName,
+    funcParams
+) {
+    let abi = ["function transfer(address to, uint amount)", "function execute(address dest, uint value, bytes func)"];
+    let iface = new ethers.utils.Interface(abi);
+    return iface.encodeFunctionData(funcName, funcParams)
+}
+
+module.exports = { createUserOperation, createInitCode, createCallData }

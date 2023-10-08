@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { createUserOperation, createInitCode } = require("../utils/createUserOperation")
+const { createUserOperation, createInitCode, createCallData } = require("../utils/createData")
 require('dotenv').config()
 const helpers = require("@nomicfoundation/hardhat-network-helpers");
 
@@ -97,10 +97,12 @@ describe("Sparky-Wallet", function () {
         // create initCode
         let initCode = createInitCode(sparkyAccountFactory.address, signer.address, 0)
         // create user operation
-        let abi = ["function transfer(address to, uint amount)", "function execute(address dest, uint value, bytes func)"];
-        let iface = new ethers.utils.Interface(abi);
-        let func = iface.encodeFunctionData("transfer", [signer.address, oneEther])
-        let calldata = iface.encodeFunctionData("execute", [WETH, 0, func])
+        // let abi = ["function transfer(address to, uint amount)", "function execute(address dest, uint value, bytes func)"];
+        // let iface = new ethers.utils.Interface(abi);
+        // let func = iface.encodeFunctionData("transfer", [signer.address, oneEther])
+        // let calldata = iface.encodeFunctionData("execute", [WETH, 0, func])
+        let func = createCallData("transfer", [signer.address, oneEther])
+        let calldata = createCallData("execute", [WETH, 0, func])
 
 
         let userOperation = createUserOperation(
@@ -151,8 +153,12 @@ describe("Sparky-Wallet", function () {
         // create user operation
         let abi = ["function transfer(address to, uint amount)", "function execute(address dest, uint value, bytes func)"];
         let iface = new ethers.utils.Interface(abi);
-        let func = iface.encodeFunctionData("transfer", [signer.address, oneEther])
-        let calldata = iface.encodeFunctionData("execute", [WETH, 0, func])
+        
+        // let func = iface.encodeFunctionData("transfer", [signer.address, oneEther])
+        // let calldata = iface.encodeFunctionData("execute", [WETH, 0, func])
+        let func = createCallData("transfer", [signer.address, oneEther])
+        let calldata = createCallData("execute", [WETH, 0, func])
+
 
 
         {
