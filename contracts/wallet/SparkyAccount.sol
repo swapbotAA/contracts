@@ -11,21 +11,30 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 import "../@eth-infinitism-v0.4/core/BaseAccount.sol";
 import "../@eth-infinitism-v0.4/samples/callback/TokenCallbackHandler.sol";
+import "../@eth-infinitism-v0.4/interfaces/UserOperation.sol";
 
 /**
-  * minimal account.
-  *  this is sample minimal account.
-  *  has execute, eth handling methods
-  *  has a single signer that can send requests through the entryPoint.
-  */
-contract SparkyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, Initializable {
+ * minimal account.
+ *  this is sample minimal account.
+ *  has execute, eth handling methods
+ *  has a single signer that can send requests through the entryPoint.
+ */
+contract SparkyAccount is
+    BaseAccount,
+    TokenCallbackHandler,
+    UUPSUpgradeable,
+    Initializable
+{
     using ECDSA for bytes32;
 
     address public owner;
 
     IEntryPoint private immutable _entryPoint;
 
-    event SparkyAccountInitialized(IEntryPoint indexed entryPoint, address indexed owner);
+    event SparkyAccountInitialized(
+        IEntryPoint indexed entryPoint,
+        address indexed owner
+    );
 
     modifier onlyOwner() {
         _onlyOwner();
@@ -37,24 +46,31 @@ contract SparkyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
         return _entryPoint;
     }
 
-
     // solhint-disable-next-line no-empty-blocks
     receive() external payable {}
 
     constructor(IEntryPoint anEntryPoint) {
         _entryPoint = anEntryPoint;
+
         _disableInitializers();
     }
 
     function _onlyOwner() internal view {
         //directly from EOA owner, or through the account itself (which gets redirected through execute())
-        require(msg.sender == owner || msg.sender == address(this), "only owner");
+        require(
+            msg.sender == owner || msg.sender == address(this),
+            "only owner"
+        );
     }
 
     /**
      * execute a transaction (called directly from owner, or by entryPoint)
      */
-    function execute(address dest, uint256 value, bytes calldata func) external {
+    function execute(
+        address dest,
+        uint256 value,
+        bytes calldata func
+    ) external {
         _requireFromEntryPointOrOwner();
         _call(dest, value, func);
     }
@@ -63,9 +79,17 @@ contract SparkyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
      * execute a sequence of transactions
      * @dev to reduce gas consumption for trivial case (no value), use a zero-length array to mean zero value
      */
-    function executeBatch(address[] calldata dest, uint256[] calldata value, bytes[] calldata func) external {
+    function executeBatch(
+        address[] calldata dest,
+        uint256[] calldata value,
+        bytes[] calldata func
+    ) external {
         _requireFromEntryPointOrOwner();
-        require(dest.length == func.length && (value.length == 0 || value.length == func.length), "wrong array lengths");
+        require(
+            dest.length == func.length &&
+                (value.length == 0 || value.length == func.length),
+            "wrong array lengths"
+        );
         if (value.length == 0) {
             for (uint256 i = 0; i < dest.length; i++) {
                 _call(dest[i], 0, func[i]);
@@ -77,12 +101,10 @@ contract SparkyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
         }
     }
 
-   
-
     /**
      * @dev The _entryPoint member is immutable, to reduce gas consumption.  To upgrade EntryPoint,
      * a new implementation of SparkyAccount must be deployed with the new EntryPoint address, then upgrading
-      * the implementation by calling `upgradeTo()`
+     * the implementation by calling `upgradeTo()`
      */
     function initialize(address anOwner) public virtual initializer {
         _initialize(anOwner);
@@ -95,21 +117,57 @@ contract SparkyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
 
     // Require the function call went through EntryPoint or owner
     function _requireFromEntryPointOrOwner() internal view {
-        require(msg.sender == address(entryPoint()) || msg.sender == owner, "account: not Owner or EntryPoint");
+        require(
+            msg.sender == address(entryPoint()) || msg.sender == owner,
+            "account: not Owner or EntryPoint"
+        );
     }
 
     /// implement template method of BaseAccount
-    function _validateSignature(UserOperation calldata userOp, bytes32 userOpHash)
-    internal override virtual returns (uint256 validationData) {
-        return 0;
-        // bytes32 hash = userOpHash.toEthSignedMessageHash();
-        // if (owner != hash.recover(userOp.signature))
-        //     return SIG_VALIDATION_FAILED;
+    function _validateSignature(
+        UserOperation calldata userOp,
+        bytes32 userOpHash
+    ) internal virtual override returns (uint256 validationData) {
         // return 0;
+        bytes32 nameHash = keccak256(
+            "UserOperationWithoutSig(address sender,uint256 nonce,bytes initCode,bytes callData,uint256 callGasLimit,uint256 verificationGasLimit,uint256 preVerificationGas,uint256 maxFeePerGas,uint256 maxPriorityFeePerGas,bytes paymasterAndData)"
+        );
+
+        bytes32 typedHash = keccak256(abi.encodePacked(nameHash, UserOperationLib.pack(userOp)));
+        
+
+        bytes32 domainSeparator = _getDomainSeparator();
+
+        bytes32 hash = ECDSA.toTypedDataHash(domainSeparator, typedHash);
+        if (owner != hash.recover(userOp.signature))
+            return SIG_VALIDATION_FAILED;
+        return 0;
+    }
+
+    function _getDomainSeparator()
+        internal
+        view
+        returns (bytes32 domainSeparator)
+    {
+        uint256 chainId;
+        assembly {
+            chainId := chainid()
+        }
+        domainSeparator = keccak256(
+            abi.encode(
+                keccak256(
+                    "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+                ),
+                keccak256(bytes("SparkyAccount")),
+                keccak256(bytes("1")),
+                chainId,
+                address(this)
+            )
+        );
     }
 
     function _call(address target, uint256 value, bytes memory data) internal {
-        (bool success, bytes memory result) = target.call{value : value}(data);
+        (bool success, bytes memory result) = target.call{value: value}(data);
         if (!success) {
             assembly {
                 revert(add(result, 32), mload(result))
@@ -128,7 +186,7 @@ contract SparkyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
      * deposit more funds for this account in the entryPoint
      */
     function addDeposit() public payable {
-        entryPoint().depositTo{value : msg.value}(address(this));
+        entryPoint().depositTo{value: msg.value}(address(this));
     }
 
     /**
@@ -136,13 +194,17 @@ contract SparkyAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, In
      * @param withdrawAddress target to send to
      * @param amount to withdraw
      */
-    function withdrawDepositTo(address payable withdrawAddress, uint256 amount) public onlyOwner {
+    function withdrawDepositTo(
+        address payable withdrawAddress,
+        uint256 amount
+    ) public onlyOwner {
         entryPoint().withdrawTo(withdrawAddress, amount);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal view override {
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal view override {
         (newImplementation);
         _onlyOwner();
     }
 }
-

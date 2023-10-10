@@ -1,35 +1,5 @@
 const { ethers } = require("hardhat");
 
-function createUserOperation(
-    sender,
-    nonce,
-    initCode,
-    callData,
-    callGasLimit,
-    verificationGasLimit,
-    preVerificationGas,
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-    paymasterAndData,
-    signature,
-
-) {
-    UserOperation = {
-        sender,
-        nonce,
-        initCode,
-        callData,
-        callGasLimit,
-        verificationGasLimit,
-        preVerificationGas,
-        maxFeePerGas,
-        maxPriorityFeePerGas,
-        paymasterAndData,
-        signature,
-    }
-
-    return UserOperation
-}
 
 function createInitCode(
     factory,
@@ -49,9 +19,15 @@ function createCallData(
     funcName,
     funcParams
 ) {
-    let abi = ["function transfer(address to, uint amount)", "function execute(address dest, uint value, bytes func)"];
+    let abi = [
+        "function transfer(address to, uint amount)",
+        "function approve(address spender, uint amount)",
+        "function execute(address dest, uint value, bytes func)",
+        "function executeBatch(address[] dest, uint[] value, bytes[] func)",
+        "function exactInputSingle(tuple(address tokenIn,address tokenOut,uint24 fee,address recipient,uint amountIn,uint amountOutMinimum,uint160 sqrtPriceLimitX96) params)"
+    ];
     let iface = new ethers.utils.Interface(abi);
     return iface.encodeFunctionData(funcName, funcParams)
 }
 
-module.exports = { createUserOperation, createInitCode, createCallData }
+module.exports = { createInitCode, createCallData }

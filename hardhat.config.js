@@ -1,6 +1,8 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomicfoundation/hardhat-verify");
 require('dotenv').config()
+require("hardhat-tracer");
+
 // require("hardhat-gas-reporter");
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -33,7 +35,7 @@ const privateKey =
           url: "https://sepolia.infura.io/v3/b6b76cf6eef242a197dd2916d295210c",
           blockNumber: 4227276,
         },
-        gas: 2100000
+        gas: 5000000
         // account:[]
       },
       sepolia: {
