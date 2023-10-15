@@ -7,6 +7,7 @@ const hre = require("hardhat");
 const { ethers } = require("hardhat");
 require('dotenv').config()
 SWAPROUTER = process.env.SWAPROUTER02_SEPOLIA
+ENTRYPOINT = process.env.ENTRYPOINT_SEPOLIA
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -17,24 +18,23 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const Register = await ethers.getContractFactory("Register");
-  const Wallet = await ethers.getContractFactory("Wallet");
-  const UniswapRouter = await ethers.getContractFactory("UniswapRouter");
+  const SparkyAccountFactory = await ethers.getContractFactory("SparkyAccountFactory");
+  sparkyAccountFactory = await SparkyAccountFactory.deploy(ENTRYPOINT)
+  await sparkyAccountFactory.deployed()
+  console.log("sparkyAccountFactory: ", sparkyAccountFactory.address)
+  SparkyAccount = await ethers.getContractFactory("SparkyAccount")
+  sparkyAccount = await SparkyAccount.deploy(ENTRYPOINT)
+  console.log("SparkyAccount: ", sparkyAccount.address)
 
-  console.log("deploying...")
-  let register = await Register.deploy();
-  await register.deployed()
-  console.log("register deployed: ", register.address)
+  SparkyPaymaster = await ethers.getContractFactory("SparkyPaymaster")
+  sparkyPaymaster = await SparkyPaymaster.deploy(ENTRYPOINT)
+  console.log("sparkyPaymaster: ", sparkyPaymaster.address)
 
-  let wallet = await Wallet.deploy(register.address, process.env.WETH_SEPOLIA);
-  await wallet.deployed()
-  console.log("wallet deployed: ", wallet.address)
+  oneEther = ethers.utils.parseEther("0.1")
 
-  let uniswapRouter = await UniswapRouter.deploy(wallet.address, SWAPROUTER);
-  await uniswapRouter.deployed()
-  console.log("uniswapRouter deployed: ", uniswapRouter.address)
+  await sparkyPaymaster.deposit({ value: oneEther })
+  console.log("Done")
 
-  await register.addRouter(uniswapRouter.address)
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const {  createInitCode, createCallData } = require("../utils/createData")
+const { createInitCode, createCallData } = require("../utils/createData")
 const { createTypedDataAndSign, UserOperationWithoutSig } = require("../utils/signTypedData")
 
 require('dotenv').config()
@@ -20,6 +20,7 @@ describe("Sparky-Wallet", function () {
         EntryPoint = await ethers.getContractFactory("EntryPoint")
         entryPoint = await EntryPoint.deploy()
         // entryPoint = EntryPoint.attach(process.env.ENTRYPOINT_SEPOLIA)
+
         SparkyAccountFactory = await ethers.getContractFactory("SparkyAccountFactory");
         sparkyAccountFactory = await SparkyAccountFactory.deploy(entryPoint.address)
         await sparkyAccountFactory.deployed()
@@ -170,7 +171,7 @@ describe("Sparky-Wallet", function () {
 
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
             let userOperation = userOperationWithoutSig.addSig(sig)
-                
+
             // let userOperation = createUserOperation(
             //     addr,
             //     nonce.toString(),
@@ -226,7 +227,7 @@ describe("Sparky-Wallet", function () {
             //     sparkyPaymaster.address,
             //     sig
             // )
-        let userOperation = userOperationWithoutSig.addSig(sig)
+            let userOperation = userOperationWithoutSig.addSig(sig)
 
             // await helpers.setCode(entryPoint.address, process.env.SIMULATION_BYTECODE);
             // await entryPointSimulations.simulateValidation(userOperation)
@@ -275,7 +276,7 @@ describe("Sparky-Wallet", function () {
             )
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
             userOperation_1 = userOperationWithoutSig.addSig(sig)
-            
+
             // userOperation_1 = createUserOperation(
             //     addr,
             //     0,
@@ -342,7 +343,7 @@ describe("Sparky-Wallet", function () {
         // hre.tracer.enabled = true;
         let res = await entryPointSimulations.connect(dev).callStatic.simulateHandleOp(userOperation_1, "0x0000000000000000000000000000000000000000", "0x")
 
-        // console.log(res)
+        console.log(res)
         // expect(res.targetSuccess).to.equal(true)
 
         beforeBalance = await Uni.balanceOf(addr)
