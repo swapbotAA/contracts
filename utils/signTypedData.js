@@ -1,9 +1,9 @@
 const { ethers } = require("hardhat");
 
 class UserOperationWithoutSig {
-    constructor(sender, nonce, initCode, callData, callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas, paymasterAndData) {
+    constructor(sender, initCode, callData, callGasLimit, verificationGasLimit, preVerificationGas, maxFeePerGas, maxPriorityFeePerGas, paymasterAndData) {
         this.sender = sender,
-            this.nonce = nonce,
+            // this.nonce = nonce,
             this.initCode = initCode,
             this.callData = callData,
             this.callGasLimit = callGasLimit,
@@ -16,7 +16,7 @@ class UserOperationWithoutSig {
     addSig(signature) {
         let UserOperation = {
             sender: this.sender,
-            nonce: this.nonce,
+            // nonce: this.nonce,
             initCode: this.initCode,
             callData: this.callData,
             callGasLimit: this.callGasLimit,
@@ -27,9 +27,25 @@ class UserOperationWithoutSig {
             paymasterAndData: this.paymasterAndData,
             signature,
         }
-
         return UserOperation
     }
+    addNonce(nonce) {
+        let UserOperation = {
+            sender: this.sender,
+            nonce,
+            initCode: this.initCode,
+            callData: this.callData,
+            callGasLimit: this.callGasLimit,
+            verificationGasLimit: this.verificationGasLimit,
+            preVerificationGas: this.preVerificationGas,
+            maxFeePerGas: this.maxFeePerGas,
+            maxPriorityFeePerGas: this.maxPriorityFeePerGas,
+            paymasterAndData: this.paymasterAndData,
+            signature: this.signature,
+        }
+        return UserOperation
+    }
+
 }
 
 
@@ -44,7 +60,7 @@ async function createTypedDataAndSign(UserOperationWithoutSig, chainId, signer) 
     const types = {
         UserOperationWithoutSig: [
             { name: 'sender', type: 'address' },
-            { name: 'nonce', type: 'uint256' },
+            // { name: 'nonce', type: 'uint256' },
             { name: 'initCode', type: 'bytes' },
             { name: 'callData', type: 'bytes' },
             { name: 'callGasLimit', type: 'uint256' },

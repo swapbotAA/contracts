@@ -6,7 +6,7 @@ pragma solidity ^0.8.12;
 
 import "../interfaces/IAccount.sol";
 import "../interfaces/IEntryPoint.sol";
-import "./Helpers.sol";
+import "../@eth-infinitism-v0.4/core/Helpers.sol";
 
 /**
  * Basic account implementation.
@@ -14,7 +14,7 @@ import "./Helpers.sol";
  * Specific account implementation should inherit it and provide the account-specific logic.
  */
 abstract contract BaseAccount is IAccount {
-    // using UserOperationLib for UserOperation;
+    using IUserOperation for UserOperation;
 
     /**
      * Return value in case of signature failure, with no time-range.

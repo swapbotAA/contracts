@@ -9,9 +9,11 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 
-import "../@eth-infinitism-v0.4/core/BaseAccount.sol";
+import "./BaseAccount.sol";
 import "../@eth-infinitism-v0.4/samples/callback/TokenCallbackHandler.sol";
-import "../@eth-infinitism-v0.4/interfaces/UserOperation.sol";
+import "../interfaces/IUserOperation.sol";
+
+// import "../@eth-infinitism-v0.4/interfaces/UserOperation.sol";
 
 /**
  * minimal account.
@@ -130,10 +132,10 @@ contract SparkyAccount is
     ) internal virtual override returns (uint256 validationData) {
         // return 0;
         bytes32 nameHash = keccak256(
-            "UserOperationWithoutSig(address sender,uint256 nonce,bytes initCode,bytes callData,uint256 callGasLimit,uint256 verificationGasLimit,uint256 preVerificationGas,uint256 maxFeePerGas,uint256 maxPriorityFeePerGas,bytes paymasterAndData)"
+            "UserOperationWithoutSig(address sender,bytes initCode,bytes callData,uint256 callGasLimit,uint256 verificationGasLimit,uint256 preVerificationGas,uint256 maxFeePerGas,uint256 maxPriorityFeePerGas,bytes paymasterAndData)"
         );
 
-        bytes32 typedHash = keccak256(abi.encodePacked(nameHash, UserOperationLib.pack(userOp)));
+        bytes32 typedHash = keccak256(abi.encodePacked(nameHash, IUserOperation.pack(userOp)));
         
 
         bytes32 domainSeparator = _getDomainSeparator();

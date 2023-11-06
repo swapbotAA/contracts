@@ -105,7 +105,7 @@ describe("Sparky-Wallet", function () {
         // create account & transfer erc20
         let userOperationWithoutSig = new UserOperationWithoutSig(
             addr,
-            0,
+            // 0,
             initCode,
             calldata,
             300000,
@@ -117,7 +117,7 @@ describe("Sparky-Wallet", function () {
         )
         let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
         let userOperation = userOperationWithoutSig.addSig(sig)
-
+        userOperation.nonce = 0
         beforeBalance = await iWETH9.balanceOf(signer.address)
         let tx = await entryPoint.handleOps([userOperation], signer.address)
         await expect(tx)
@@ -158,7 +158,7 @@ describe("Sparky-Wallet", function () {
             let nonce = await entryPoint.getNonce(addr, 0)
             let userOperationWithoutSig = new UserOperationWithoutSig(
                 addr,
-                0,
+                // 0,
                 initCode,
                 "0x",
                 300000,
@@ -171,7 +171,7 @@ describe("Sparky-Wallet", function () {
 
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
             let userOperation = userOperationWithoutSig.addSig(sig)
-
+            userOperation.nonce = 0
             // let userOperation = createUserOperation(
             //     addr,
             //     nonce.toString(),
@@ -203,7 +203,7 @@ describe("Sparky-Wallet", function () {
             let nonce = await entryPoint.getNonce(addr, 0)
             let userOperationWithoutSig = new UserOperationWithoutSig(
                 addr,
-                nonce,
+                // nonce,
                 "0x",
                 calldata,
                 300000,
@@ -214,21 +214,8 @@ describe("Sparky-Wallet", function () {
                 sparkyPaymaster.address
             )
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
-            // let userOperation = createUserOperation(
-            //     addr,
-            //     nonce,
-            //     "0x",
-            //     calldata,
-            //     300000,
-            //     300000,
-            //     100000,
-            //     10000000000,
-            //     5000000000,
-            //     sparkyPaymaster.address,
-            //     sig
-            // )
             let userOperation = userOperationWithoutSig.addSig(sig)
-
+            userOperation.nonce = nonce
             // await helpers.setCode(entryPoint.address, process.env.SIMULATION_BYTECODE);
             // await entryPointSimulations.simulateValidation(userOperation)
             // console.log(await entryPoint.getUserOpHash(userOperation))
@@ -264,7 +251,7 @@ describe("Sparky-Wallet", function () {
             let calldata = createCallData("execute", [WETH, 0, func])
             let userOperationWithoutSig = new UserOperationWithoutSig(
                 addr,
-                0,
+                // 0,
                 initCode,
                 calldata,
                 300000,
@@ -276,6 +263,7 @@ describe("Sparky-Wallet", function () {
             )
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
             userOperation_1 = userOperationWithoutSig.addSig(sig)
+            userOperation_1.nonce = 0
 
             // userOperation_1 = createUserOperation(
             //     addr,
@@ -309,7 +297,7 @@ describe("Sparky-Wallet", function () {
             // create account & transfer erc20
             let userOperationWithoutSig = new UserOperationWithoutSig(
                 addr,
-                1,
+                // 1,
                 "0x",
                 calldata,
                 300000,
@@ -321,6 +309,7 @@ describe("Sparky-Wallet", function () {
             )
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
             userOperation_2 = userOperationWithoutSig.addSig(sig)
+            userOperation_2.nonce = 1
 
             // userOperation_2 = createUserOperation(
             //     addr,
@@ -397,7 +386,7 @@ describe("Sparky-Wallet", function () {
 
             let userOperationWithoutSig = new UserOperationWithoutSig(
                 addr,
-                0,
+                // 0,
                 initCode,
                 calldata,
                 300000,
@@ -409,19 +398,8 @@ describe("Sparky-Wallet", function () {
             )
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
             userOperation = userOperationWithoutSig.addSig(sig)
-            // userOperation = createUserOperation(
-            //     addr,
-            //     0,
-            //     initCode,
-            //     calldata,
-            //     300000,
-            //     300000,
-            //     100000,
-            //     10000000000,
-            //     5000000000,
-            //     sparkyPaymaster.address,
-            //     sig
-            // )
+            userOperation.nonce = 0
+
         }
 
         beforeBalance = await Uni.balanceOf(addr)
@@ -465,7 +443,7 @@ describe("Sparky-Wallet", function () {
 
             let userOperationWithoutSig = new UserOperationWithoutSig(
                 addr,
-                0,
+                // 0,
                 initCode,
                 calldata,
                 300000,
@@ -477,19 +455,8 @@ describe("Sparky-Wallet", function () {
             )
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
             userOperation = userOperationWithoutSig.addSig(sig)
-            // userOperation = createUserOperation(
-            //     addr,
-            //     0,
-            //     initCode,
-            //     calldata,
-            //     300000,
-            //     300000,
-            //     100000,
-            //     10000000000,
-            //     5000000000,
-            //     sparkyPaymaster.address,
-            //     sig
-            // )
+            userOperation.nonce = 0
+            
         }
 
         beforeBalance = await Uni.balanceOf(addr)
