@@ -3,7 +3,7 @@ require("@nomicfoundation/hardhat-verify");
 require('dotenv').config()
 require("hardhat-tracer");
 
-// require("hardhat-gas-reporter");
+require("hardhat-gas-reporter");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html

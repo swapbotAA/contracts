@@ -10,6 +10,14 @@ UNI = process.env.UNI_SEPOLIA
 WETH = process.env.WETH_SEPOLIA
 ROUTER = process.env.SWAPROUTER02_SEPOLIA
 CHAINID = process.env.HARDHAT_CHAINID
+
+CallGasLimit = 300000
+VerificationGasLimit = 300000
+PreVerificationGas = 100000
+MaxFeePerGas = 10000000000;
+MaxPriorityFeePerGas = 5000000000
+
+
 describe("Sparky-Wallet", function () {
 
     beforeEach("deploying Wallet", async function () {
@@ -161,11 +169,11 @@ describe("Sparky-Wallet", function () {
                 // 0,
                 initCode,
                 "0x",
-                300000,
-                400000,
-                300000,
-                10000000000,
-                5000000000,
+                CallGasLimit,
+                VerificationGasLimit,
+                PreVerificationGas,
+                MaxFeePerGas,
+                MaxPriorityFeePerGas,
                 sparkyPaymaster.address
             )
 
@@ -206,11 +214,11 @@ describe("Sparky-Wallet", function () {
                 // nonce,
                 "0x",
                 calldata,
-                300000,
-                300000,
-                100000,
-                10000000000,
-                5000000000,
+                CallGasLimit,
+                VerificationGasLimit,
+                PreVerificationGas,
+                MaxFeePerGas,
+                MaxPriorityFeePerGas,
                 sparkyPaymaster.address
             )
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
@@ -254,11 +262,11 @@ describe("Sparky-Wallet", function () {
                 // 0,
                 initCode,
                 calldata,
-                300000,
-                300000,
-                100000,
-                10000000000,
-                5000000000,
+                CallGasLimit,
+                VerificationGasLimit,
+                PreVerificationGas,
+                MaxFeePerGas,
+                MaxPriorityFeePerGas,
                 sparkyPaymaster.address,
             )
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
@@ -300,11 +308,11 @@ describe("Sparky-Wallet", function () {
                 // 1,
                 "0x",
                 calldata,
-                300000,
-                300000,
-                100000,
-                10000000000,
-                5000000000,
+                CallGasLimit,
+                VerificationGasLimit,
+                PreVerificationGas,
+                MaxFeePerGas,
+                MaxPriorityFeePerGas,
                 sparkyPaymaster.address,
             )
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
@@ -332,7 +340,6 @@ describe("Sparky-Wallet", function () {
         // hre.tracer.enabled = true;
         let res = await entryPointSimulations.connect(dev).callStatic.simulateHandleOp(userOperation_1, "0x0000000000000000000000000000000000000000", "0x")
 
-        console.log(res)
         // expect(res.targetSuccess).to.equal(true)
 
         beforeBalance = await Uni.balanceOf(addr)
@@ -389,11 +396,11 @@ describe("Sparky-Wallet", function () {
                 // 0,
                 initCode,
                 calldata,
-                300000,
-                300000,
-                100000,
-                10000000000,
-                5000000000,
+                CallGasLimit,
+                VerificationGasLimit,
+                PreVerificationGas,
+                MaxFeePerGas,
+                MaxPriorityFeePerGas,
                 sparkyPaymaster.address,
             )
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
@@ -446,17 +453,17 @@ describe("Sparky-Wallet", function () {
                 // 0,
                 initCode,
                 calldata,
-                300000,
-                300000,
-                100000,
-                10000000000,
-                5000000000,
+                CallGasLimit,
+                VerificationGasLimit,
+                PreVerificationGas,
+                MaxFeePerGas,
+                MaxPriorityFeePerGas,
                 sparkyPaymaster.address,
             )
             let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
             userOperation = userOperationWithoutSig.addSig(sig)
             userOperation.nonce = 0
-            
+
         }
 
         beforeBalance = await Uni.balanceOf(addr)
