@@ -8,6 +8,7 @@ const helpers = require("@nomicfoundation/hardhat-network-helpers");
 
 UNI = process.env.UNI_SEPOLIA
 WETH = process.env.WETH_SEPOLIA
+ETH = process.env.WETH_SEPOLIA
 ROUTER = process.env.SWAPROUTER02_SEPOLIA
 CHAINID = process.env.HARDHAT_CHAINID
 
@@ -379,7 +380,7 @@ describe("Sparky-Wallet", function () {
         {
             let func_approve = createCallData("approve", [ROUTER, oneEther])
             let params = {
-                tokenIn: WETH,
+                tokenIn: ETH,
                 tokenOut: UNI,
                 fee: 3000,
                 recipient: addr,
