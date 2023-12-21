@@ -15,8 +15,8 @@ import "./SparkyAccount.sol";
 contract SparkyAccountFactory {
     SparkyAccount public immutable accountImplementation;
 
-    constructor(IEntryPoint _entryPoint) {
-        accountImplementation = new SparkyAccount(_entryPoint);
+    constructor(IEntryPoint _entryPoint, address router) {
+        accountImplementation = new SparkyAccount(_entryPoint, router);
     }
 
     /**
@@ -25,16 +25,23 @@ contract SparkyAccountFactory {
      * Note that during UserOperation execution, this method is called only if the account is not deployed.
      * This method returns an existing account address so that entryPoint.getSenderAddress() would work even after account creation
      */
-    function createAccount(address owner,uint256 salt) public returns (SparkyAccount ret) {
+    function createAccount(
+        address owner,
+        uint256 salt
+    ) public returns (SparkyAccount ret) {
         address addr = getAddress(owner, salt);
         uint codeSize = addr.code.length;
         if (codeSize > 0) {
             return SparkyAccount(payable(addr));
         }
-        ret = SparkyAccount(payable(new ERC1967Proxy{salt : bytes32(salt)}(
-                address(accountImplementation),
-                abi.encodeCall(SparkyAccount.initialize, (owner))
-            )));
+        ret = SparkyAccount(
+            payable(
+                new ERC1967Proxy{salt: bytes32(salt)}(
+                    address(accountImplementation),
+                    abi.encodeCall(SparkyAccount.initialize, (owner))
+                )
+            )
+        );
     }
 
     // function createAccount(address owner,uint256 salt) public returns (address) {
@@ -55,13 +62,22 @@ contract SparkyAccountFactory {
     /**
      * calculate the counterfactual address of this account as it would be returned by createAccount()
      */
-    function getAddress(address owner,uint256 salt) public view returns (address) {
-        return Create2.computeAddress(bytes32(salt), keccak256(abi.encodePacked(
-                type(ERC1967Proxy).creationCode,
-                abi.encode(
-                    address(accountImplementation),
-                    abi.encodeCall(SparkyAccount.initialize, (owner))
+    function getAddress(
+        address owner,
+        uint256 salt
+    ) public view returns (address) {
+        return
+            Create2.computeAddress(
+                bytes32(salt),
+                keccak256(
+                    abi.encodePacked(
+                        type(ERC1967Proxy).creationCode,
+                        abi.encode(
+                            address(accountImplementation),
+                            abi.encodeCall(SparkyAccount.initialize, (owner))
+                        )
+                    )
                 )
-            )));
+            );
     }
 }

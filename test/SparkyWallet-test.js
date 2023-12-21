@@ -13,7 +13,7 @@ ROUTER = process.env.SWAPROUTER02_SEPOLIA
 CHAINID = process.env.HARDHAT_CHAINID
 
 CallGasLimit = 300000
-VerificationGasLimit = 300000
+VerificationGasLimit = 350000
 PreVerificationGas = 100000
 MaxFeePerGas = 10000000000;
 MaxPriorityFeePerGas = 5000000000
@@ -25,17 +25,20 @@ describe("Sparky-Wallet", function () {
         provider = ethers.provider
         signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
         // user = await ethers.getImpersonatedSigner("0x4431642f3c12dc155d4f7829a5d8d39aed754dab")
-        dev = await ethers.getImpersonatedSigner("0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5")
+
+        bundler = await ethers.getImpersonatedSigner("0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5")
+        await network.provider.send("hardhat_setBalance", [bundler.address, "0xffffffffffffffffffffffff"])
+
         EntryPoint = await ethers.getContractFactory("EntryPoint")
         entryPoint = await EntryPoint.deploy()
         // entryPoint = EntryPoint.attach(process.env.ENTRYPOINT_SEPOLIA)
 
         SparkyAccountFactory = await ethers.getContractFactory("SparkyAccountFactory");
-        sparkyAccountFactory = await SparkyAccountFactory.deploy(entryPoint.address)
+        sparkyAccountFactory = await SparkyAccountFactory.deploy(entryPoint.address, ROUTER)
         await sparkyAccountFactory.deployed()
 
         SparkyAccount = await ethers.getContractFactory("SparkyAccount")
-        sparkyAccount = await SparkyAccount.deploy(entryPoint.address)
+        // sparkyAccount = await SparkyAccount.deploy(entryPoint.address, ROUTER)
 
 
 
@@ -46,7 +49,7 @@ describe("Sparky-Wallet", function () {
         iWETH9 = await ethers.getContractAt("IWETH9", WETH);
         Uni = await ethers.getContractAt("IERC20", UNI)
 
-        await sparkyAccount.deployed()
+        // await sparkyAccount.deployed()
 
         oneEther = ethers.utils.parseEther("0.1")
 
@@ -117,11 +120,11 @@ describe("Sparky-Wallet", function () {
             // 0,
             initCode,
             calldata,
-            300000,
-            300000,
-            100000,
-            10000000000,
-            5000000000,
+            CallGasLimit,
+            VerificationGasLimit,
+            PreVerificationGas,
+            MaxFeePerGas,
+            MaxPriorityFeePerGas,
             sparkyPaymaster.address,
         )
         let sig = await createTypedDataAndSign(userOperationWithoutSig, CHAINID, signer)
@@ -246,8 +249,8 @@ describe("Sparky-Wallet", function () {
         let addr = await sparkyAccountFactory.getAddress(signer.address, 0)
         let account = SparkyAccount.attach(addr)
         // transfer 0.1 weth to addr
-        await iWETH9.connect(dev).deposit({ value: oneEther })
-        await iWETH9.connect(dev).transfer(addr, oneEther)
+        await iWETH9.connect(bundler).deposit({ value: oneEther })
+        await iWETH9.connect(bundler).transfer(addr, oneEther)
         expect(await iWETH9.balanceOf(addr)).to.equal(oneEther)
         // create initCode
         let initCode = createInitCode(sparkyAccountFactory.address, signer.address, 0)
@@ -339,13 +342,13 @@ describe("Sparky-Wallet", function () {
         await helpers.setCode(entryPoint.address, process.env.SIMULATION_BYTECODE);
         // console.log(await entryPointSimulations.callStatic.simulateValidation(userOperation_1))
         // hre.tracer.enabled = true;
-        let res = await entryPointSimulations.connect(dev).callStatic.simulateHandleOp(userOperation_1, "0x0000000000000000000000000000000000000000", "0x")
+        let res = await entryPointSimulations.connect(bundler).callStatic.simulateHandleOp(userOperation_1, "0x0000000000000000000000000000000000000000", "0x")
 
         // expect(res.targetSuccess).to.equal(true)
 
         beforeBalance = await Uni.balanceOf(addr)
         // console.log("WETH: ", await iWETH9.balanceOf(addr))
-        await entryPoint.connect(dev).handleOps([userOperation_1, userOperation_2], dev.address)
+        await entryPoint.connect(bundler).handleOps([userOperation_1, userOperation_2], bundler.address)
         afterBalance = await Uni.balanceOf(addr)
         expect(afterBalance.sub(beforeBalance)).to.not.equal(0)
 
@@ -369,8 +372,8 @@ describe("Sparky-Wallet", function () {
         let addr = await sparkyAccountFactory.getAddress(signer.address, 0)
         let account = SparkyAccount.attach(addr)
         // transfer 0.1 weth to addr
-        await iWETH9.connect(dev).deposit({ value: oneEther })
-        await iWETH9.connect(dev).transfer(addr, oneEther)
+        await iWETH9.connect(bundler).deposit({ value: oneEther })
+        await iWETH9.connect(bundler).transfer(addr, oneEther)
         expect(await iWETH9.balanceOf(addr)).to.equal(oneEther)
         // create initCode
         let initCode = createInitCode(sparkyAccountFactory.address, signer.address, 0)
@@ -413,7 +416,7 @@ describe("Sparky-Wallet", function () {
         beforeBalance = await Uni.balanceOf(addr)
         // console.log(beforeBalance)
         // console.log("WETH: ", await iWETH9.balanceOf(addr))
-        let tx = await entryPoint.connect(dev).handleOps([userOperation], dev.address)
+        let tx = await entryPoint.connect(bundler).handleOps([userOperation], bundler.address)
         afterBalance = await Uni.balanceOf(addr)
         await expect(tx)
             .to.emit(Uni, 'Transfer')
@@ -424,7 +427,7 @@ describe("Sparky-Wallet", function () {
         let addr = await sparkyAccountFactory.getAddress(signer.address, 0)
         let account = SparkyAccount.attach(addr)
         // transfer 0.1 eth to addr
-        await dev.sendTransaction({
+        await bundler.sendTransaction({
             to: addr,
             value: oneEther
         });
@@ -470,11 +473,122 @@ describe("Sparky-Wallet", function () {
         beforeBalance = await Uni.balanceOf(addr)
         // console.log(beforeBalance)
         // console.log("WETH: ", await iWETH9.balanceOf(addr))
-        let tx = await entryPoint.connect(dev).handleOps([userOperation], dev.address)
+        let tx = await entryPoint.connect(bundler).handleOps([userOperation], bundler.address)
         afterBalance = await Uni.balanceOf(addr)
         await expect(tx)
             .to.emit(Uni, 'Transfer')
             .to.emit(iWETH9, 'Transfer')
         expect(afterBalance.sub(beforeBalance)).to.not.equal(0)
+    })
+    it("should create account with EntryPoint & delegate & swap ETH", async function () {
+        let addr = await sparkyAccountFactory.getAddress(signer.address, 0)
+        let account = SparkyAccount.attach(addr)
+        // transfer 0.1 eth to addr
+        await bundler.sendTransaction({
+            to: addr,
+            value: oneEther
+        });
+
+        expect(await provider.getBalance(addr)).to.equal(oneEther)
+        // create initCode
+        let initCode = createInitCode(sparkyAccountFactory.address, signer.address, 0)
+        // create user operation
+        let userOperation_delegate
+        {
+            let delegatee = bundler.address;
+            let bool = true;
+            // let func = createCallData("delegate", [delegatee, bool])
+            // let calldata = createCallData("execute", [addr, 0, func])
+            let calldata = createCallData("delegate", [delegatee, bool])
+            let userOperationWithoutSig_delegate = new UserOperationWithoutSig(
+                addr,
+                // 0,
+                initCode,
+                calldata,
+                CallGasLimit,
+                VerificationGasLimit,
+                PreVerificationGas,
+                MaxFeePerGas,
+                MaxPriorityFeePerGas,
+                sparkyPaymaster.address,
+            )
+            let sig_delegate = await createTypedDataAndSign(userOperationWithoutSig_delegate, CHAINID, signer)
+            userOperation_delegate = userOperationWithoutSig_delegate.addSig(sig_delegate)
+            userOperation_delegate.nonce = 0
+
+        }
+        await entryPoint.connect(bundler).handleOps([userOperation_delegate], bundler.address)
+        expect(await account.isDelegated(bundler.address)).to.equal(true)
+
+
+        let userOperation_swap
+        {
+            let params = {
+                tokenIn: WETH,
+                tokenOut: UNI,
+                fee: 3000,
+                recipient: addr,
+                amountIn: oneEther,
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            }
+            let func_swap = createCallData("exactInputSingle", [params])
+            let calldata = createCallData("execute", [ROUTER, oneEther, func_swap])
+
+            let userOperationWithoutSig_swap = new UserOperationWithoutSig(
+                addr,
+                // 0,
+                "0x",
+                calldata,
+                CallGasLimit,
+                VerificationGasLimit,
+                PreVerificationGas,
+                MaxFeePerGas,
+                MaxPriorityFeePerGas,
+                sparkyPaymaster.address,
+            )
+            // no longer need a sig, input a default value
+            let sig = "0xb4f36dabf4aa03898f3519278b19e8ddacb551271b769020916085079f3acdeb650e81b81a5f1a5a8eceb0a33c0af52465011509ddaefbb79e041612d2cc04d51b"
+            userOperation_swap = userOperationWithoutSig_swap.addSig(sig)
+            userOperation_swap.nonce = 1
+        }
+
+        beforeBalance = await Uni.balanceOf(addr)
+        // console.log(beforeBalance)
+        // console.log("WETH: ", await iWETH9.balanceOf(addr))
+
+        let tx = await entryPoint.connect(bundler).handleOps([userOperation_swap], bundler.address)
+        // let tx = await entryPoint.connect(bundler).handleOps([userOperation_delegate, userOperation_swap], bundler.address)
+
+        afterBalance = await Uni.balanceOf(addr)
+        await expect(tx)
+            .to.emit(Uni, 'Transfer')
+            .to.emit(iWETH9, 'Transfer')
+        expect(afterBalance.sub(beforeBalance)).to.not.equal(0)
+
+
+        try {
+            let func_approve = createCallData("approve", [ROUTER, oneEther])
+            let calldata = createCallData("execute", [WETH, 0, func_approve])
+            let userOperationWithoutSig = new UserOperationWithoutSig(
+                addr,
+                // 0,
+                '0x',
+                calldata,
+                CallGasLimit,
+                VerificationGasLimit,
+                PreVerificationGas,
+                MaxFeePerGas,
+                MaxPriorityFeePerGas,
+                sparkyPaymaster.address,
+            )
+            let sig = "0xb4f36dabf4aa03898f3519278b19e8ddacb551271b769020916085079f3acdeb650e81b81a5f1a5a8eceb0a33c0af52465011509ddaefbb79e041612d2cc04d51b"
+            userOperation = userOperationWithoutSig.addSig(sig)
+            userOperation.nonce = 2
+            await entryPoint.connect(bundler).handleOps([userOperation], bundler.address)
+            throw null
+        } catch (err) {
+            expect(err.message).to.include("AA24 signature error")
+        }
     })
 })

@@ -24,7 +24,8 @@ function createCallData(
         "function approve(address spender, uint amount)",
         "function execute(address dest, uint value, bytes func)",
         "function executeBatch(address[] dest, uint[] value, bytes[] func)",
-        "function exactInputSingle(tuple(address tokenIn,address tokenOut,uint24 fee,address recipient,uint amountIn,uint amountOutMinimum,uint160 sqrtPriceLimitX96) params)"
+        "function exactInputSingle(tuple(address tokenIn,address tokenOut,uint24 fee,address recipient,uint amountIn,uint amountOutMinimum,uint160 sqrtPriceLimitX96) params)",
+        "function delegate(address delegatee, bool val)"
     ];
     let iface = new ethers.utils.Interface(abi);
     return iface.encodeFunctionData(funcName, funcParams)

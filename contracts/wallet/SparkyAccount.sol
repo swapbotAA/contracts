@@ -33,6 +33,10 @@ contract SparkyAccount is
 
     IEntryPoint private immutable _entryPoint;
 
+    mapping(address => bool) public isDelegated;
+
+    address private immutable _router;
+
     event SparkyAccountInitialized(
         IEntryPoint indexed entryPoint,
         address indexed owner
@@ -51,9 +55,9 @@ contract SparkyAccount is
     // solhint-disable-next-line no-empty-blocks
     receive() external payable {}
 
-    constructor(IEntryPoint anEntryPoint) {
+    constructor(IEntryPoint anEntryPoint, address router) {
         _entryPoint = anEntryPoint;
-
+        _router = router;
         _disableInitializers();
     }
 
@@ -130,13 +134,25 @@ contract SparkyAccount is
         UserOperation calldata userOp,
         bytes32 userOpHash
     ) internal virtual override returns (uint256 validationData) {
-        // return 0;
+        // delegatees are approved to execute tx without sig
+        if (isDelegated[tx.origin] == true) {
+            bytes calldata callData = userOp.callData;
+            (address to,,) = abi.decode(
+                callData[4:],
+                (address, uint256, bytes)
+            );
+            // target address is router
+            if (to == _router) {
+                return 0;
+            }
+        }
         bytes32 nameHash = keccak256(
             "UserOperationWithoutSig(address sender,bytes initCode,bytes callData,uint256 callGasLimit,uint256 verificationGasLimit,uint256 preVerificationGas,uint256 maxFeePerGas,uint256 maxPriorityFeePerGas,bytes paymasterAndData)"
         );
 
-        bytes32 typedHash = keccak256(abi.encodePacked(nameHash, IUserOperation.pack(userOp)));
-        
+        bytes32 typedHash = keccak256(
+            abi.encodePacked(nameHash, IUserOperation.pack(userOp))
+        );
 
         bytes32 domainSeparator = _getDomainSeparator();
 
@@ -208,5 +224,10 @@ contract SparkyAccount is
     ) internal view override {
         (newImplementation);
         _onlyOwner();
+    }
+
+    function delegate(address delegatee, bool val) public {
+        _requireFromEntryPointOrOwner();
+        isDelegated[delegatee] = val;
     }
 }
