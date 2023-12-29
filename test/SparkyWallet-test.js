@@ -62,7 +62,7 @@ describe("Sparky-Wallet", function () {
 
     })
     it("should manually create account successfully", async function () {
-        let addr = await sparkyAccountFactory.getAddress(signer.address, 1)
+        let addr = await sparkyAccountFactory.findAddress(signer.address, 1)
         let account = SparkyAccount.attach(addr)
         let tx = await sparkyAccountFactory.createAccount(signer.address, 1)
 
@@ -76,7 +76,7 @@ describe("Sparky-Wallet", function () {
         // expect(addr).to.equal("0x0000")
     })
     it("should manually deposit and withdrawl erc20 successfully", async function () {
-        let addr = await sparkyAccountFactory.getAddress(signer.address, 1)
+        let addr = await sparkyAccountFactory.findAddress(signer.address, 1)
         let account = SparkyAccount.attach(addr)
 
         await iWETH9.connect(signer).deposit({ value: oneEther })
@@ -103,7 +103,7 @@ describe("Sparky-Wallet", function () {
     })
 
     it("should create account with EntryPoint & withdraw ERC20", async function () {
-        let addr = await sparkyAccountFactory.getAddress(signer.address, 0)
+        let addr = await sparkyAccountFactory.findAddress(signer.address, 0)
         let account = SparkyAccount.attach(addr)
         // transfer 0.1 weth to addr
         await iWETH9.connect(signer).deposit({ value: oneEther })
@@ -147,7 +147,7 @@ describe("Sparky-Wallet", function () {
     })
 
     it("should withdraw ERC20 with deployed account", async function () {
-        let addr = await sparkyAccountFactory.getAddress(signer.address, 0)
+        let addr = await sparkyAccountFactory.findAddress(signer.address, 0)
         let account = SparkyAccount.attach(addr)
 
         // transfer 0.1 weth to addr
@@ -246,7 +246,7 @@ describe("Sparky-Wallet", function () {
 
 
     it("should create account with EntryPoint & approve & swap ERC20", async function () {
-        let addr = await sparkyAccountFactory.getAddress(signer.address, 0)
+        let addr = await sparkyAccountFactory.findAddress(signer.address, 0)
         let account = SparkyAccount.attach(addr)
         // transfer 0.1 weth to addr
         await iWETH9.connect(bundler).deposit({ value: oneEther })
@@ -369,7 +369,7 @@ describe("Sparky-Wallet", function () {
         // console.log("UNI: ", afterBalance.sub(beforeBalance))
     })
     it("should create account with EntryPoint & approve & swap ERC20 use batch execute", async function () {
-        let addr = await sparkyAccountFactory.getAddress(signer.address, 0)
+        let addr = await sparkyAccountFactory.findAddress(signer.address, 0)
         let account = SparkyAccount.attach(addr)
         // transfer 0.1 weth to addr
         await iWETH9.connect(bundler).deposit({ value: oneEther })
@@ -424,7 +424,7 @@ describe("Sparky-Wallet", function () {
         expect(afterBalance.sub(beforeBalance)).to.not.equal(0)
     })
     it("should create account with EntryPoint & swap ETH", async function () {
-        let addr = await sparkyAccountFactory.getAddress(signer.address, 0)
+        let addr = await sparkyAccountFactory.findAddress(signer.address, 0)
         let account = SparkyAccount.attach(addr)
         // transfer 0.1 eth to addr
         await bundler.sendTransaction({
@@ -481,7 +481,7 @@ describe("Sparky-Wallet", function () {
         expect(afterBalance.sub(beforeBalance)).to.not.equal(0)
     })
     it("should create account with EntryPoint & delegate & swap ETH", async function () {
-        let addr = await sparkyAccountFactory.getAddress(signer.address, 0)
+        let addr = await sparkyAccountFactory.findAddress(signer.address, 0)
         let account = SparkyAccount.attach(addr)
         // transfer 0.1 eth to addr
         await bundler.sendTransaction({

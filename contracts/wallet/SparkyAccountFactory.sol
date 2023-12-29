@@ -29,7 +29,7 @@ contract SparkyAccountFactory {
         address owner,
         uint256 salt
     ) public returns (SparkyAccount ret) {
-        address addr = getAddress(owner, salt);
+        address addr = findAddress(owner, salt);
         uint codeSize = addr.code.length;
         if (codeSize > 0) {
             return SparkyAccount(payable(addr));
@@ -45,7 +45,7 @@ contract SparkyAccountFactory {
     }
 
     // function createAccount(address owner,uint256 salt) public returns (address) {
-    //     address addr = getAddress(owner, salt);
+    //     address addr = findAddress(owner, salt);
     //     uint codeSize = addr.code.length;
     //     if (codeSize > 0) {
     //         // return SparkyAccount(payable(addr));
@@ -62,7 +62,7 @@ contract SparkyAccountFactory {
     /**
      * calculate the counterfactual address of this account as it would be returned by createAccount()
      */
-    function getAddress(
+    function findAddress(
         address owner,
         uint256 salt
     ) public view returns (address) {
