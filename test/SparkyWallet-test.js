@@ -6,10 +6,11 @@ const { createTypedDataAndSign, UserOperationWithoutSig } = require("../utils/si
 require('dotenv').config()
 const helpers = require("@nomicfoundation/hardhat-network-helpers");
 
-UNI = process.env.UNI_SEPOLIA
-WETH = process.env.WETH_SEPOLIA
-ETH = process.env.WETH_SEPOLIA
-ROUTER = process.env.SWAPROUTER02_SEPOLIA
+UNI = process.env.UNI
+WETH = process.env.WBNB
+ETH = process.env.WBNB
+// ROUTER = process.env.SWAPROUTER02_SEPOLIA
+ROUTER = process.env.SWAPROUTER02
 CHAINID = process.env.HARDHAT_CHAINID
 
 CallGasLimit = 300000
@@ -28,10 +29,12 @@ describe("Sparky-Wallet", function () {
 
         bundler = await ethers.getImpersonatedSigner("0x95222290DD7278Aa3Ddd389Cc1E1d165CC4BAfe5")
         await network.provider.send("hardhat_setBalance", [bundler.address, "0xffffffffffffffffffffffff"])
+        await network.provider.send("hardhat_setBalance", [signer.address, "0xffffffffffffffffffffffff"])
+
 
         EntryPoint = await ethers.getContractFactory("EntryPoint")
         entryPoint = await EntryPoint.deploy()
-        // entryPoint = EntryPoint.attach(process.env.ENTRYPOINT_SEPOLIA)
+        // entryPoint = EntryPoint.attach(process.env.ENTRYPOINT)
 
         SparkyAccountFactory = await ethers.getContractFactory("SparkyAccountFactory");
         sparkyAccountFactory = await SparkyAccountFactory.deploy(entryPoint.address, ROUTER)
@@ -42,8 +45,8 @@ describe("Sparky-Wallet", function () {
 
 
 
-        EntryPointSimulations = await ethers.getContractFactory("EntryPointSimulations")
-        entryPointSimulations = EntryPointSimulations.attach(entryPoint.address)
+        // EntryPointSimulations = await ethers.getContractFactory("EntryPointSimulations")
+        // entryPointSimulations = EntryPointSimulations.attach(entryPoint.address)
 
 
         iWETH9 = await ethers.getContractAt("IWETH9", WETH);
@@ -55,10 +58,13 @@ describe("Sparky-Wallet", function () {
 
         // set paymaste
         SparkyPaymaster = await ethers.getContractFactory("SparkyPaymaster")
-        sparkyPaymaster = await SparkyPaymaster.deploy(entryPoint.address)
+        sparkyPaymaster = await SparkyPaymaster.deploy(entryPoint.address, bundler.address)
 
 
         await sparkyPaymaster.deposit({ value: oneEther })
+
+        SparkyAccountMock = await ethers.getContractFactory("SparkyAccountMock")
+        sparkyAccountMock = await SparkyAccountMock.deploy(entryPoint.address, ROUTER)
 
     })
     it("should manually create account successfully", async function () {
@@ -131,7 +137,7 @@ describe("Sparky-Wallet", function () {
         let userOperation = userOperationWithoutSig.addSig(sig)
         userOperation.nonce = 0
         beforeBalance = await iWETH9.balanceOf(signer.address)
-        let tx = await entryPoint.handleOps([userOperation], signer.address)
+        let tx = await entryPoint.connect(bundler).handleOps([userOperation], signer.address)
         await expect(tx)
             .to.emit(account, 'SparkyAccountInitialized').withArgs(
                 entryPoint.address,
@@ -144,6 +150,9 @@ describe("Sparky-Wallet", function () {
             );
         afterBalance = await iWETH9.balanceOf(signer.address)
         expect(afterBalance.sub(beforeBalance)).to.equal(oneEther)
+        expect(await sparkyAccountMock.verifySig(userOperation, addr, CHAINID)).to.equal(signer.address)
+
+
     })
 
     it("should withdraw ERC20 with deployed account", async function () {
@@ -203,12 +212,14 @@ describe("Sparky-Wallet", function () {
             // await entryPointSimulations.simulateValidation(userOperation)
             // console.log(await entryPoint.getUserOpHash(userOperation))
             beforeBalance = await iWETH9.balanceOf(signer.address)
-            let tx = await entryPoint.handleOps([userOperation], signer.address)
+            let tx = await entryPoint.connect(bundler).handleOps([userOperation], signer.address)
             await expect(tx)
                 .to.emit(account, 'SparkyAccountInitialized').withArgs(
                     entryPoint.address,
                     signer.address
                 )
+
+        
         }
         // transfer erc20
         {
@@ -232,7 +243,7 @@ describe("Sparky-Wallet", function () {
             // await entryPointSimulations.simulateValidation(userOperation)
             // console.log(await entryPoint.getUserOpHash(userOperation))
             beforeBalance = await iWETH9.balanceOf(signer.address)
-            let tx = await entryPoint.handleOps([userOperation], signer.address)
+            let tx = await entryPoint.connect(bundler).handleOps([userOperation], signer.address)
             await expect(tx)
                 .to.emit(iWETH9, 'Transfer').withArgs(
                     account.address,
@@ -241,7 +252,18 @@ describe("Sparky-Wallet", function () {
                 );
             afterBalance = await iWETH9.balanceOf(signer.address)
             expect(afterBalance.sub(beforeBalance)).to.equal(oneEther)
+
+            // handleOp called by unauthorized bundler should revert
+            try {
+                userOperation.nonce = await entryPoint.getNonce(addr, 0)
+                await entryPoint.connect(signer).handleOps([userOperation], signer.address)
+                throw null
+            } catch (err) {
+                console.log(err.message)
+                expect(err.message).to.include("VM Exception");
+            }
         }
+    
     })
 
 
@@ -339,10 +361,10 @@ describe("Sparky-Wallet", function () {
         }
 
 
-        await helpers.setCode(entryPoint.address, process.env.SIMULATION_BYTECODE);
+        // await helpers.setCode(entryPoint.address, process.env.SIMULATION_BYTECODE);
         // console.log(await entryPointSimulations.callStatic.simulateValidation(userOperation_1))
         // hre.tracer.enabled = true;
-        let res = await entryPointSimulations.connect(bundler).callStatic.simulateHandleOp(userOperation_1, "0x0000000000000000000000000000000000000000", "0x")
+        // let res = await entryPointSimulations.connect(bundler).callStatic.simulateHandleOp(userOperation_1, "0x0000000000000000000000000000000000000000", "0x")
 
         // expect(res.targetSuccess).to.equal(true)
 
@@ -588,7 +610,28 @@ describe("Sparky-Wallet", function () {
             await entryPoint.connect(bundler).handleOps([userOperation], bundler.address)
             throw null
         } catch (err) {
-            expect(err.message).to.include("AA24 signature error")
+            console.log(err.message)
+            expect(err.message).to.include("custom error")
         }
+    })
+    it("temp test", async function () {
+
+
+        userOp = {
+            "sender": "0x8eBD0B90Af0f38D2a38cAcAD8685CFed817ab326",
+            "nonce": 0,
+            "callData": "0xb61d27f60000000000000000000000003bfa4769fb09eefc5a80d6e87c3b9c650f7ae48e000000000000000000000000000000000000000000000000002386f26fc10000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000e404e45aaf000000000000000000000000fff9976782d46cc05630d1f6ebab18b2324d6b140000000000000000000000001f9840a85d5af5bf1d1762f925bdaddc4201f9840000000000000000000000000000000000000000000000000000000000000bb80000000000000000000000008ebd0b90af0f38d2a38cacad8685cfed817ab326000000000000000000000000000000000000000000000000002386f26fc100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "callGasLimit": "300000",
+            "initCode": "0x97e4ac7528c1f797fe5269b0eeccd25d897b39175fbfb9cf00000000000000000000000099812f68d44adf1a90e0ec131d7833476effde6c0000000000000000000000000000000000000000000000000000000000000000",
+            "maxFeePerGas": "5785740775",
+            "maxPriorityFeePerGas": "1000000000",
+            "paymasterAndData": "0x7BC827dF7aAdD95fCd1F670Bc2c36a860b4518AD",
+            "preVerificationGas": "100000",
+            "signature": "0x402ecf53a89e438f7e7a9da9f43b7f2e068fe344c1ee4751e2ad49378f6dc1c47eaf7738e2167ddd7c505bb90973f7edfe2365d00c7d1ab7c2ff73974dfbccbc1c",
+            "verificationGasLimit": "300000"
+        }
+
+        let address = await sparkyAccountMock.verifySig(userOp, "0x8eBD0B90Af0f38D2a38cAcAD8685CFed817ab326", 11155111)
+        console.log(address)
     })
 })

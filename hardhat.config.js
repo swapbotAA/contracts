@@ -32,14 +32,15 @@ const privateKey =
         forking: {
           // url: "https://mainnet.infura.io/v3/b6b76cf6eef242a197dd2916d295210c",
           // blockNumber: 16045624,
-          url: "https://sepolia.infura.io/v3/b6b76cf6eef242a197dd2916d295210c",
-          blockNumber: 4227276,
+          // url: "https://eth-sepolia.g.alchemy.com/v2/ZLVKiHfu_pItPKYwb0-u6uHDNqjB1bB7",
+          url:"https://lingering-skilled-glade.bsc.quiknode.pro/2ada68de517b7ab3d92271ce0540215c7aa26a7d/",
+          blockNumber: 35663348,
         },
         gas: 5000000
         // account:[]
       },
       sepolia: {
-        url: "https://sepolia.infura.io/v3/b6b76cf6eef242a197dd2916d295210c",
+        url: "https://eth-sepolia.g.alchemy.com/v2/ZLVKiHfu_pItPKYwb0-u6uHDNqjB1bB7",
         accounts: [process.env.PRIVATE_KEY],
         gas: 2100000
       }

@@ -137,7 +137,7 @@ contract SparkyAccount is
         // delegatees are approved to execute tx without sig
         if (isDelegated[tx.origin] == true) {
             bytes calldata callData = userOp.callData;
-            (address to,,) = abi.decode(
+            (address to, , ) = abi.decode(
                 callData[4:],
                 (address, uint256, bytes)
             );

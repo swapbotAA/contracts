@@ -6,7 +6,11 @@ pragma solidity ^0.8.12;
 import "./@eth-infinitism-v0.4/core/BasePaymaster.sol";
 
 contract SparkyPaymaster is BasePaymaster {
-    constructor(IEntryPoint _entryPoint) BasePaymaster(_entryPoint) {}
+
+    mapping(address=>bool) private _isAuthorized;
+    constructor(IEntryPoint _entryPoint, address authorizedBundler) BasePaymaster(_entryPoint) {
+        _isAuthorized[authorizedBundler] = true;
+    }
 
     /**
      * Validate a user operation.
@@ -25,6 +29,17 @@ contract SparkyPaymaster is BasePaymaster {
         returns (bytes memory context, uint256 validationData)
     {
         context = "";
-        validationData = 0;
+        if(_isAuthorized[tx.origin]){
+            validationData = 0;
+        } else {
+            validationData = 1;
+
+        }
     }
+
+    function authorize(address bundler, bool isAllowed) onlyOwner external {
+        _isAuthorized[bundler] = isAllowed;
+    }
+
+    
 }
