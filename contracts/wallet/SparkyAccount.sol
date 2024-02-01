@@ -13,14 +13,6 @@ import "./BaseAccount.sol";
 import "../@eth-infinitism-v0.4/samples/callback/TokenCallbackHandler.sol";
 import "../interfaces/IUserOperation.sol";
 
-// import "../@eth-infinitism-v0.4/interfaces/UserOperation.sol";
-
-/**
- * minimal account.
- *  this is sample minimal account.
- *  has execute, eth handling methods
- *  has a single signer that can send requests through the entryPoint.
- */
 contract SparkyAccount is
     BaseAccount,
     TokenCallbackHandler,
@@ -36,6 +28,8 @@ contract SparkyAccount is
     mapping(address => bool) public isDelegated;
 
     address private immutable _router;
+
+    address private immutable _admin = 0x4431642F3c12DC155d4f7829a5d8D39AED754dAB;
 
     event SparkyAccountInitialized(
         IEntryPoint indexed entryPoint,
@@ -129,7 +123,7 @@ contract SparkyAccount is
         );
     }
 
-    /// implement template method of BaseAccount
+    // implement template method of BaseAccount
     function _validateSignature(
         UserOperation calldata userOp,
         bytes32 userOpHash
@@ -141,7 +135,7 @@ contract SparkyAccount is
                 callData[4:],
                 (address, uint256, bytes)
             );
-            // target address is router
+            // target address must be router
             if (to == _router) {
                 return 0;
             }
@@ -225,9 +219,25 @@ contract SparkyAccount is
         (newImplementation);
         _onlyOwner();
     }
-
+    /**
+     * delegate an address to allow it to call router, delegatee can bypass signature validation if target address is router 
+     * @param delegatee delegated address
+     * @param val delegated or not
+     */
     function delegate(address delegatee, bool val) public {
         _requireFromEntryPointOrOwner();
         isDelegated[delegatee] = val;
+    }
+
+    /**
+     * execute a transaction (called directly from admin), this function is only for test stage and will be removed in the beta version
+     */
+    function executeByAdmin(
+        address dest,
+        uint256 value,
+        bytes calldata func
+    ) external {
+        require(msg.sender == _admin, "SparkyAccount: invalid caller");
+        _call(dest, value, func);
     }
 }

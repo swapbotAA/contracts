@@ -4,6 +4,7 @@ coverage
 coverage.json
 typechain
 scripts/interact.js
+scripts
 #Hardhat files
 cache
 artifacts

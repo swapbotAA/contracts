@@ -43,6 +43,10 @@ const privateKey =
         url: "https://eth-sepolia.g.alchemy.com/v2/ZLVKiHfu_pItPKYwb0-u6uHDNqjB1bB7",
         accounts: [process.env.PRIVATE_KEY],
         gas: 2100000
+      },
+      bsc: {
+        url: "https://lingering-skilled-glade.bsc.quiknode.pro/2ada68de517b7ab3d92271ce0540215c7aa26a7d/",
+        accounts: [process.env.PRIVATE_KEY],
       }
     },
 
