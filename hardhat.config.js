@@ -25,7 +25,9 @@ const privateKey =
    */
   module.exports = {
     etherscan: {
-      apiKey: process.env.ETHERSCAN_API,
+      apiKey: process.env.BSCSCAN_API,
+      // apiKey: process.env.ETHERSCAN_API,
+
     },
     networks: {
       hardhat: {
@@ -47,6 +49,7 @@ const privateKey =
       bsc: {
         url: "https://lingering-skilled-glade.bsc.quiknode.pro/2ada68de517b7ab3d92271ce0540215c7aa26a7d/",
         accounts: [process.env.PRIVATE_KEY],
+        gasPrice: 3000000000 // 3gwei
       }
     },
 
